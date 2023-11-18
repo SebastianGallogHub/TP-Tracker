@@ -56,6 +56,7 @@ MODS += externals$(DS)cmsis
 
 MODS += modules$(DS)efHal
 MODS += modules$(DS)bsp_$(BOARD)
+MODS += modules$(DS)mma8451
 
 
 
