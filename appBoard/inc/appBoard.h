@@ -48,6 +48,8 @@ extern "C" {
 #include "bsp_frdmkl46z.h"
 #endif
 
+#include "stdbool.h"
+
 /*==================[external data declaration]==============================*/
 
 /*==================[external functions declaration]=========================*/
