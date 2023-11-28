@@ -23,8 +23,6 @@ extern void measurePositionTask(void *pvParameters)
 	{
 		efHal_gpio_waitForInt(EF_HAL_INT1_ACCEL, pdMS_TO_TICKS(100));
 
-		//Leer queue mma8451_accIntCount_t
-
 		accG = mma8451ext_accConvertToG(&accCAD, MMA8451_RESOLUTION_2G_RANGE_14b);
 		position = kalman_calcPosition(accG);
 
