@@ -11,8 +11,8 @@
 #include "queue.h"
 #include "kalman.h"
 
-#define TRK_UART_SND_QUEUE_LENGTH		100
-#define TRK_UART_SND_QUEUE_ITEM_SIZE 	sizeof(position3D_t)
+#define UART_SND_QUEUE_LENGTH		100
+#define UART_SND_QUEUE_ITEM_SIZE 	sizeof(position3D_t)
 
 QueueHandle_t xUartSendQueue = NULL;
 
@@ -22,7 +22,7 @@ extern void reportPositionTask(void *pvParameters)
 	uint8_t header[] = "Hola Mundo...\n\rX\tY\tZ\t ";
 	uint8_t charTemp;
 
-	xUartSendQueue = xQueueCreate(TRK_UART_SND_QUEUE_LENGTH, TRK_UART_SND_QUEUE_ITEM_SIZE);
+	xUartSendQueue = xQueueCreate(UART_SND_QUEUE_LENGTH, UART_SND_QUEUE_ITEM_SIZE);
 
 	//Encabezado y aviso de tarea inicializada
 	efHal_uart_send(efHal_dh_UART0, &header, sizeof(header), portMAX_DELAY);
@@ -46,5 +46,10 @@ extern void reportPositionTask(void *pvParameters)
 extern void reportPositionTask_addNewPosition(position3D_t position)
 {
 	xQueueSend(xUartSendQueue, &position, (TickType_t) 1 );
+}
+
+extern void reportPositionTask_reset(void)
+{
+	xQueueReset(xUartSendQueue);
 }
 

@@ -12,5 +12,6 @@
 
 extern void reportPositionTask(void *pvParameters);
 extern void reportPositionTask_addNewPosition(position3D_t position);
+extern void reportPositionTask_reset(void);
 
 #endif /* PROJECTS_TP_TRACKER_APPLICATION_SRC_REPORTPOSITIONTASK_H_ */

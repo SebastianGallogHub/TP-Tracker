@@ -23,6 +23,7 @@ typedef enum
 	E_SW3,
 } MEF_EVENTS;
 
-void MEF(MEF_EVENTS event);
+extern void MEFTask(void *pvParameters);
+extern void MEF(MEF_EVENTS event);
 
 #endif /* PROJECTS_TP_TRACKER_APPLICATION_SRC_APPMEF_H_ */

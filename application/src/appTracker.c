@@ -8,8 +8,6 @@
 /*==================[inclusions]=============================================*/
 #include "FreeRTOS.h"
 #include "task.h"
-#include "efHal_gpio.h"
-#include "appBoard.h"
 
 #include "AppMEF.h"
 #include "measurePositionTask.h"
@@ -29,8 +27,9 @@
 
 int main(void)
 {
-//	xTaskCreate(reportPositionTask, "ReportPosition", 100, NULL, 0, NULL);
-//	xTaskCreate(measurePositionTask, "MeasurePosition", 100, NULL, 2, NULL);
+	xTaskCreate(MEFTask, "MEF", 100, NULL, 0, NULL);
+	xTaskCreate(reportPositionTask, "ReportPosition", 100, NULL, 0, NULL);
+	xTaskCreate(measurePositionTask, "MeasurePosition", 100, NULL, 2, NULL);
 
     vTaskStartScheduler();
     for (;;);

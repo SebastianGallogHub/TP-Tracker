@@ -10,10 +10,24 @@
 #include "efHal_gpio.h"
 
 #include "kalman.h"
+#include "measurePositionTask.h"
+#include "reportPositionTask.h"
 
 static void gpio_callBackInt(efHal_gpio_id_t id);
+void setEvent(MEF_EVENTS event);
+MEF_EVENTS getEvent(void);
 
-void MEF(MEF_EVENTS event)
+MEF_EVENTS currentEvent;
+
+extern void MEFTask(void *pvParameters)
+{
+	for(;;)
+	{
+		MEF(getEvent());
+	}
+}
+
+extern void MEF(MEF_EVENTS event)
 {
 	MEF_STATE state = MEF_APP_INIT;
 
@@ -36,7 +50,7 @@ void MEF(MEF_EVENTS event)
 	case MEF_CANCEL_ACQ:
 		if (event == E_SW1) {
 			//Reiniciar las conversiones para comenzar el proceso
-//			appBoard_accIntEnable(true);
+			appBoard_accIntEnable(true);
 
 			efHal_gpio_setPin(EF_HAL_GPIO_LED_RED, false);
 			efHal_gpio_setPin(EF_HAL_GPIO_LED_GREEN, true);
@@ -48,16 +62,13 @@ void MEF(MEF_EVENTS event)
 	case MEF_START_ACQ:
 		if (event == E_SW3) {
 			//pausar las conversiones de mma
-			//	appBoard_accIntEnable(false);
+			appBoard_accIntEnable(false);
 
-				//Resetear el filtro
-			//	kalman_reset();
+			//Resetear el filtro
+			kalman_reset();
 
-				//borrar queue mma8451_accIntCount_t
-			//	xQueueReset(xAccReceiveQueue);
-
-				//borrar queue position3D_t
-			//	xQueueReset(xUartSendQueue);
+			//borrar queue de la tarea de envío
+			reportPositionTask_reset();
 
 			efHal_gpio_setPin(EF_HAL_GPIO_LED_RED, true);
 			efHal_gpio_setPin(EF_HAL_GPIO_LED_GREEN, false);
@@ -75,13 +86,26 @@ static void gpio_callBackInt(efHal_gpio_id_t id)
     switch (id)
     {
         case EF_HAL_GPIO_SW_1:
-			MEF(E_SW1);
+			setEvent(E_SW1);
             break;
 
         case EF_HAL_GPIO_SW_3:
-        	MEF(E_SW3);
+        	setEvent(E_SW3);
             break;
     }
 
 }
 
+
+void setEvent(MEF_EVENTS event)
+{
+	currentEvent = event;
+}
+
+MEF_EVENTS getEvent(void)
+{
+	MEF_EVENTS e = currentEvent;
+	currentEvent = E_NONE;
+
+	return e;
+}
