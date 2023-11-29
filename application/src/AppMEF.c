@@ -29,7 +29,7 @@ extern void MEFTask(void *pvParameters)
 
 extern void MEF(MEF_EVENTS event)
 {
-	MEF_STATE state = MEF_APP_INIT;
+	static MEF_STATE state = MEF_APP_INIT;
 
 	switch(state)
 	{

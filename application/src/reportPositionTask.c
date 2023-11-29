@@ -29,17 +29,17 @@ extern void reportPositionTask(void *pvParameters)
 
 	for (;;)
 	{
-		//Leer Queue position3D_t
-		if(xQueueReceive(xUartSendQueue, &position, portMAX_DELAY) == pdPASS )
-		{
-			//todo obtener info del sistema
-
-			//composición
-			//todo componer el string separado por ";"
-			//todo agregar info del sistema
-
-			efHal_uart_send(efHal_dh_UART0, &charTemp, sizeof(charTemp), portMAX_DELAY);
-		}
+//		//Leer Queue position3D_t
+//		if(xQueueReceive(xUartSendQueue, &position, portMAX_DELAY) == pdPASS )
+//		{
+//			//todo obtener info del sistema
+//
+//			//composición
+//			//todo componer el string separado por ";"
+//			//todo agregar info del sistema
+//
+//			efHal_uart_send(efHal_dh_UART0, &charTemp, sizeof(charTemp), portMAX_DELAY);
+//		}
 	}
 }
 

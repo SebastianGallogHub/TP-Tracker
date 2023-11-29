@@ -11,7 +11,6 @@
 typedef enum
 {
 	MEF_APP_INIT = 0,
-	MEF_APP_IDLE,
 	MEF_CANCEL_ACQ,
 	MEF_START_ACQ,
 } MEF_STATE;
