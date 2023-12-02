@@ -9,9 +9,10 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-#include "AppMEF.h"
-#include "measurePositionTask.h"
-#include "reportPositionTask.h"
+#include "appMEF.h"
+#include "measurePosition.h"
+#include "reportPosition.h"
+
 
 /*==================[macros and typedef]=====================================*/
 
@@ -27,19 +28,15 @@
 
 int main(void)
 {
-//	xTaskCreate(MEFTask, "MEF", 100, NULL, 0, NULL);
-//	xTaskCreate(reportPositionTask, "ReportPosition", 100, NULL, 0, NULL);
-//	xTaskCreate(measurePositionTask, "MeasurePosition", 100, NULL, 2, NULL);
-
     vTaskStartScheduler();
     for (;;);
 }
 
 extern void vApplicationDaemonTaskStartupHook()
 {
-	AppMEF_init();
-	xTaskCreate(reportPositionTask, "ReportPosition", 100, NULL, 0, NULL);
-	xTaskCreate(measurePositionTask, "MeasurePosition", 100, NULL, 2, NULL);
+	appMEF_init();
+	reportPosition_init();
+	measurePosition_init();
 }
 
 extern void vApplicationStackOverflowHook( TaskHandle_t xTask, char *pcTaskName )

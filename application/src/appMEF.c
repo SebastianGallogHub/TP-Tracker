@@ -6,14 +6,17 @@
  */
 
 /*==================[inclusions]=============================================*/
-#include "AppMEF.h"
+#include "appMEF.h"
+
 #include "FreeRTOS.h"
-#include "appBoard.h"
 #include "efHal_gpio.h"
+#include "task.h"
 
 #include "kalman.h"
-#include "measurePositionTask.h"
-#include "reportPositionTask.h"
+#include "measurePosition.h"
+#include "reportPosition.h"
+#include "appBoard.h"
+
 
 /*==================[macros and typedef]=====================================*/
 
@@ -70,6 +73,9 @@ static void MEF(MEF_EVENTS event)
 		efHal_gpio_setCallBackInt(EF_HAL_GPIO_SW_1, gpio_callBackInt);
 		efHal_gpio_setCallBackInt(EF_HAL_GPIO_SW_3, gpio_callBackInt);
 
+		efHal_gpio_setPin(EF_HAL_GPIO_LED_RED, true);
+		efHal_gpio_setPin(EF_HAL_GPIO_LED_GREEN, true);
+
 		state = MEF_CANCEL_ACQ;
 		break;
 
@@ -94,7 +100,7 @@ static void MEF(MEF_EVENTS event)
 			kalman_reset();
 
 			//borrar queue de la tarea de envío
-			reportPositionTask_reset();
+			reportPosition_reset();
 
 			efHal_gpio_setPin(EF_HAL_GPIO_LED_RED, true);
 			efHal_gpio_setPin(EF_HAL_GPIO_LED_GREEN, false);
@@ -137,7 +143,7 @@ MEF_EVENTS getEvent(void)
 
 /*==================[external functions definition]==========================*/
 
-extern void MEF_init(void)
+extern void appMEF_init(void)
 {
 	xTaskCreate(MEFTask, "MEF", 100, NULL, 0, NULL);
 }

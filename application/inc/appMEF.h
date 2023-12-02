@@ -1,12 +1,12 @@
 /*
- * measurePositionTask.h
+ * AppMEF.h
  *
- *  Created on: 18 nov. 2023
+ *  Created on: 28 nov. 2023
  *      Author: sebas
  */
 
-#ifndef PROJECTS_TP_TRACKER_APPLICATION_SRC_MEASUREPOSITIONTASK_H_
-#define PROJECTS_TP_TRACKER_APPLICATION_SRC_MEASUREPOSITIONTASK_H_
+#ifndef PROJECTS_TP_TRACKER_APPLICATION_SRC_APPMEF_H_
+#define PROJECTS_TP_TRACKER_APPLICATION_SRC_APPMEF_H_
 
 /*==================[inclusions]=============================================*/
 
@@ -21,8 +21,7 @@ extern "C" {
 
 /*==================[external functions declaration]=========================*/
 
-extern void measurePosition_init(void *pvParameters);
-extern void measurePositionTask(void *pvParameters);
+extern void appMEF_init(void);
 
 /*==================[cplusplus]==============================================*/
 #ifdef __cplusplus
@@ -30,4 +29,5 @@ extern void measurePositionTask(void *pvParameters);
 #endif
 
 /*==================[end of file]============================================*/
-#endif /* PROJECTS_TP_TRACKER_APPLICATION_SRC_MEASUREPOSITIONTASK_H_ */
+
+#endif /* PROJECTS_TP_TRACKER_APPLICATION_SRC_APPMEF_H_ */
