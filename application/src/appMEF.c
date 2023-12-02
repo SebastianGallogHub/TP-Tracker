@@ -39,7 +39,7 @@ typedef enum
 static void MEF(MEF_EVENTS event);
 static void gpio_callBackInt(efHal_gpio_id_t id);
 static void setEvent(MEF_EVENTS event);
-MEF_EVENTS getEvent(void);
+static MEF_EVENTS getEvent(void);
 
 /*==================[internal data definition]===============================*/
 MEF_EVENTS currentEvent;
@@ -70,10 +70,14 @@ static void MEF(MEF_EVENTS event)
 		appBoard_accIntEnable(false);
 
 		//Para obtener los eventos que hacen evolucionar la MEF
+		efHal_gpio_confInt(EF_HAL_GPIO_SW_1, EF_HAL_GPIO_INT_TYPE_FALLING_EDGE);
 		efHal_gpio_setCallBackInt(EF_HAL_GPIO_SW_1, gpio_callBackInt);
+
+		efHal_gpio_confInt(EF_HAL_GPIO_SW_3, EF_HAL_GPIO_INT_TYPE_FALLING_EDGE);
 		efHal_gpio_setCallBackInt(EF_HAL_GPIO_SW_3, gpio_callBackInt);
 
-		efHal_gpio_setPin(EF_HAL_GPIO_LED_RED, true);
+		//Prende led rojo
+		efHal_gpio_setPin(EF_HAL_GPIO_LED_RED, false);
 		efHal_gpio_setPin(EF_HAL_GPIO_LED_GREEN, true);
 
 		state = MEF_CANCEL_ACQ;
@@ -84,8 +88,9 @@ static void MEF(MEF_EVENTS event)
 			//Reiniciar las conversiones para comenzar el proceso
 			appBoard_accIntEnable(true);
 
-			efHal_gpio_setPin(EF_HAL_GPIO_LED_RED, false);
-			efHal_gpio_setPin(EF_HAL_GPIO_LED_GREEN, true);
+			//Prende led verde
+			efHal_gpio_setPin(EF_HAL_GPIO_LED_RED, true);
+			efHal_gpio_setPin(EF_HAL_GPIO_LED_GREEN, false);
 
 			state = MEF_START_ACQ;
 		}
@@ -102,8 +107,9 @@ static void MEF(MEF_EVENTS event)
 			//borrar queue de la tarea de envío
 			reportPosition_reset();
 
-			efHal_gpio_setPin(EF_HAL_GPIO_LED_RED, true);
-			efHal_gpio_setPin(EF_HAL_GPIO_LED_GREEN, false);
+			//Prende led rojo
+			efHal_gpio_setPin(EF_HAL_GPIO_LED_RED, false);
+			efHal_gpio_setPin(EF_HAL_GPIO_LED_GREEN, true);
 
 			state = MEF_CANCEL_ACQ;
 		}
@@ -128,12 +134,12 @@ static void gpio_callBackInt(efHal_gpio_id_t id)
 
 }
 
-void setEvent(MEF_EVENTS event)
+static void setEvent(MEF_EVENTS event)
 {
 	currentEvent = event;
 }
 
-MEF_EVENTS getEvent(void)
+static MEF_EVENTS getEvent(void)
 {
 	MEF_EVENTS e = currentEvent;
 	currentEvent = E_NONE;
@@ -145,7 +151,7 @@ MEF_EVENTS getEvent(void)
 
 extern void appMEF_init(void)
 {
-	xTaskCreate(MEFTask, "MEF", 100, NULL, 0, NULL);
+	xTaskCreate(MEFTask, "MEF", 100, NULL, 1, NULL);
 }
 
 /*==================[end of file]============================================*/

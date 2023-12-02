@@ -7,6 +7,7 @@
 
 /*==================[inclusions]=============================================*/
 #include "measurePosition.h"
+#include "reportPosition.h"
 #include "FreeRTOS.h"
 #include "task.h"
 
@@ -33,7 +34,7 @@ static void measurePositionTask(void *pvParameters)
 	position3D_t position;
 
 	//Delay para esperar que los recursos se inicialicen en otra tarea
-	vTaskDelay(500 / portTICK_PERIOD_MS);
+//	vTaskDelay(500 / portTICK_PERIOD_MS);
 
 	for (;;)
 	{
@@ -53,7 +54,7 @@ static void measurePositionTask(void *pvParameters)
 /*==================[external functions definition]==========================*/
 extern void measurePosition_init(void)
 {
-	xTaskCreate(measurePositionTask, "MeasurePosition", 100, NULL, 2, NULL);
+	xTaskCreate(measurePositionTask, "Measure position", 100, NULL, 0, NULL);
 }
 
 /*==================[end of file]============================================*/

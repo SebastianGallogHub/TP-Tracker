@@ -39,9 +39,9 @@ extern void reportPositionTask(void *pvParameters)
 	efHal_uart_send(efHal_dh_UART1, &header, sizeof(header), portMAX_DELAY);
 	for (;;)
 	{
-//		//Leer Queue position3D_t
-//		if(xQueueReceive(xUartSendQueue, &position, portMAX_DELAY) == pdPASS )
-//		{
+		//Leer Queue position3D_t
+		if(xQueueReceive(xUartSendQueue, &position, portMAX_DELAY) == pdPASS )
+		{
 //			//todo obtener info del sistema
 //
 //			//composición
@@ -49,7 +49,7 @@ extern void reportPositionTask(void *pvParameters)
 //			//todo agregar info del sistema
 //
 //			efHal_uart_send(efHal_dh_UART0, &charTemp, sizeof(charTemp), portMAX_DELAY);
-//		}
+		}
 	}
 }
 
