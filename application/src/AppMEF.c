@@ -4,6 +4,8 @@
  *  Created on: 28 nov. 2023
  *      Author: sebas
  */
+
+/*==================[inclusions]=============================================*/
 #include "AppMEF.h"
 #include "FreeRTOS.h"
 #include "appBoard.h"
@@ -13,11 +15,34 @@
 #include "measurePositionTask.h"
 #include "reportPositionTask.h"
 
+/*==================[macros and typedef]=====================================*/
+
+typedef enum
+{
+	MEF_APP_INIT = 0,
+	MEF_CANCEL_ACQ,
+	MEF_START_ACQ,
+} MEF_STATE;
+
+typedef enum
+{
+	E_NONE = 0,
+	E_SW1,
+	E_SW3,
+} MEF_EVENTS;
+
+/*==================[internal functions declaration]=========================*/
+
+static void MEF(MEF_EVENTS event);
 static void gpio_callBackInt(efHal_gpio_id_t id);
-void setEvent(MEF_EVENTS event);
+static void setEvent(MEF_EVENTS event);
 MEF_EVENTS getEvent(void);
 
+/*==================[internal data definition]===============================*/
 MEF_EVENTS currentEvent;
+
+/*==================[external data definition]===============================*/
+/*==================[internal functions definition]==========================*/
 
 extern void MEFTask(void *pvParameters)
 {
@@ -27,7 +52,7 @@ extern void MEFTask(void *pvParameters)
 	}
 }
 
-extern void MEF(MEF_EVENTS event)
+static void MEF(MEF_EVENTS event)
 {
 	static MEF_STATE state = MEF_APP_INIT;
 
@@ -41,6 +66,7 @@ extern void MEF(MEF_EVENTS event)
 		//Desactivo la fuente de interrupciones en el acelerómetro
 		appBoard_accIntEnable(false);
 
+		//Para obtener los eventos que hacen evolucionar la MEF
 		efHal_gpio_setCallBackInt(EF_HAL_GPIO_SW_1, gpio_callBackInt);
 		efHal_gpio_setCallBackInt(EF_HAL_GPIO_SW_3, gpio_callBackInt);
 
@@ -96,7 +122,6 @@ static void gpio_callBackInt(efHal_gpio_id_t id)
 
 }
 
-
 void setEvent(MEF_EVENTS event)
 {
 	currentEvent = event;
@@ -109,3 +134,12 @@ MEF_EVENTS getEvent(void)
 
 	return e;
 }
+
+/*==================[external functions definition]==========================*/
+
+extern void MEF_init(void)
+{
+	xTaskCreate(MEFTask, "MEF", 100, NULL, 0, NULL);
+}
+
+/*==================[end of file]============================================*/

@@ -27,9 +27,9 @@
 
 int main(void)
 {
-	xTaskCreate(MEFTask, "MEF", 100, NULL, 0, NULL);
-	xTaskCreate(reportPositionTask, "ReportPosition", 100, NULL, 0, NULL);
-	xTaskCreate(measurePositionTask, "MeasurePosition", 100, NULL, 2, NULL);
+//	xTaskCreate(MEFTask, "MEF", 100, NULL, 0, NULL);
+//	xTaskCreate(reportPositionTask, "ReportPosition", 100, NULL, 0, NULL);
+//	xTaskCreate(measurePositionTask, "MeasurePosition", 100, NULL, 2, NULL);
 
     vTaskStartScheduler();
     for (;;);
@@ -37,7 +37,9 @@ int main(void)
 
 extern void vApplicationDaemonTaskStartupHook()
 {
-	MEF(E_NONE);
+	AppMEF_init();
+	xTaskCreate(reportPositionTask, "ReportPosition", 100, NULL, 0, NULL);
+	xTaskCreate(measurePositionTask, "MeasurePosition", 100, NULL, 2, NULL);
 }
 
 extern void vApplicationStackOverflowHook( TaskHandle_t xTask, char *pcTaskName )
