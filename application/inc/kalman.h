@@ -34,7 +34,7 @@ typedef struct
 /*==================[external functions declaration]=========================*/
 
 extern void kalman_reset(void);
-extern position3D_t kalman_calcPosition(acc3D_t* acc);
+extern position3D_t kalman_calcPosition(acc3D_t acc);
 
 /*==================[cplusplus]==============================================*/
 #ifdef __cplusplus

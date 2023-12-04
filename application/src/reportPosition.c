@@ -64,7 +64,7 @@ extern void reportPosition_init(void)
 
 extern void reportPosition_addNewPosition(position3D_t position)
 {
-	xQueueSend(xUartSendQueue, &position, (TickType_t) 1 );
+	xQueueSend(xUartSendQueue, &position, 500 / portTICK_PERIOD_MS );
 }
 
 extern void reportPosition_reset(void)

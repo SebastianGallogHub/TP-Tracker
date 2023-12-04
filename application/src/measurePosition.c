@@ -27,20 +27,22 @@ static void measurePositionTask(void *pvParameters);
 /*==================[external data definition]===============================*/
 
 /*==================[internal functions definition]==========================*/
+
 static void measurePositionTask(void *pvParameters)
 {
 	mma8451_accIntCount_t accCAD;
-	acc3D_t *accG;
+	acc3D_t accG;
 	position3D_t position;
 
 	//Delay para esperar que los recursos se inicialicen en otra tarea
-//	vTaskDelay(500 / portTICK_PERIOD_MS);
+	vTaskDelay(500 / portTICK_PERIOD_MS);
 
 	for (;;)
 	{
-		if (efHal_gpio_waitForInt(EF_HAL_INT1_ACCEL, pdMS_TO_TICKS(100)))
+		if (efHal_gpio_waitForInt(EF_HAL_INT1_ACCEL, 100 / portTICK_PERIOD_MS))
 		{
-			accG = mma8451ext_accConvertToG(&accCAD, MMA8451_RESOLUTION_2G_RANGE_14b);
+			accCAD = mma8451_getAccIntCount();
+			accG = mma8451ext_accConvertToG(accCAD, MMA8451_RESOLUTION_2G_RANGE_14b);
 			position = kalman_calcPosition(accG);
 
 			// promediar / decimar / reducir freq a 10Hz y luego

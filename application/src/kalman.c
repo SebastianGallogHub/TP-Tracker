@@ -35,7 +35,7 @@ extern void kalman_reset(void)
 	}
 }
 
-extern position3D_t kalman_calcPosition(acc3D_t *acc)
+extern position3D_t kalman_calcPosition(acc3D_t acc)
 {
 	position3D_t p;
 
@@ -47,13 +47,13 @@ extern position3D_t kalman_calcPosition(acc3D_t *acc)
 	Vy[0] = Vy[1];
 	Vz[0] = Vz[1];
 
-	Vx[1] = Vx[0] + (acc->accX - ACC_BIAS) * PERIOD_S;
-	Vy[1] = Vy[0] + (acc->accY - ACC_BIAS) * PERIOD_S;
-	Vy[1] = Vz[0] + (acc->accZ - ACC_BIAS) * PERIOD_S;
+	Vx[1] = Vx[0] + (acc.accX - ACC_BIAS) * PERIOD_S;
+	Vy[1] = Vy[0] + (acc.accY - ACC_BIAS) * PERIOD_S;
+	Vy[1] = Vz[0] + (acc.accZ - ACC_BIAS) * PERIOD_S;
 
-	Sx[1] = Sx[0] + Vx[0] * PERIOD_S + ((acc->accX - ACC_BIAS) * PERIOD_S)/2 ;
-	Sy[1] = Sy[0] + Vy[0] * PERIOD_S + ((acc->accY - ACC_BIAS) * PERIOD_S)/2 ;
-	Sz[1] = Sz[0] + Vz[0] * PERIOD_S + ((acc->accZ - ACC_BIAS) * PERIOD_S)/2 ;
+	Sx[1] = Sx[0] + Vx[0] * PERIOD_S + ((acc.accX - ACC_BIAS) * PERIOD_S)/2 ;
+	Sy[1] = Sy[0] + Vy[0] * PERIOD_S + ((acc.accY - ACC_BIAS) * PERIOD_S)/2 ;
+	Sz[1] = Sz[0] + Vz[0] * PERIOD_S + ((acc.accZ - ACC_BIAS) * PERIOD_S)/2 ;
 
 	p.X = Sx[1];
 	p.Y = Sy[1];

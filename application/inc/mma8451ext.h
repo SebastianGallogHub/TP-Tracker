@@ -37,7 +37,7 @@ typedef struct
 
 /*==================[external functions declaration]=========================*/
 
-extern acc3D_t* mma8451ext_accConvertToG(mma8451_accIntCount_t *accIntCount, float_t resolution);
+extern acc3D_t mma8451ext_accConvertToG(mma8451_accIntCount_t accIntCount, float_t resolution);
 
 /*==================[cplusplus]==============================================*/
 #ifdef __cplusplus

@@ -11,6 +11,7 @@
 #include "FreeRTOS.h"
 #include "efHal_gpio.h"
 #include "task.h"
+#include "stdbool.h"
 
 #include "kalman.h"
 #include "measurePosition.h"
@@ -23,8 +24,8 @@
 typedef enum
 {
 	MEF_APP_INIT = 0,
-	MEF_CANCEL_ACQ,
-	MEF_START_ACQ,
+	MEF_NO_ACQ,
+	MEF_ACQ,
 } MEF_STATE;
 
 typedef enum
@@ -37,6 +38,8 @@ typedef enum
 /*==================[internal functions declaration]=========================*/
 
 static void MEF(MEF_EVENTS event);
+static void start_acq(void);
+static void cancel_acq(void);
 static void gpio_callBackInt(efHal_gpio_id_t id);
 static void setEvent(MEF_EVENTS event);
 static MEF_EVENTS getEvent(void);
@@ -47,12 +50,38 @@ MEF_EVENTS currentEvent;
 /*==================[external data definition]===============================*/
 /*==================[internal functions definition]==========================*/
 
-extern void MEFTask(void *pvParameters)
+static void MEFTask(void *pvParameters)
 {
 	for(;;)
 	{
 		MEF(getEvent());
 	}
+}
+
+static void start_acq(void)
+{
+	//Reiniciar las conversiones para comenzar el proceso
+	appBoard_accIntEnable(true);
+
+	//Prende led verde
+	efHal_gpio_setPin(EF_HAL_GPIO_LED_RED, true);
+	efHal_gpio_setPin(EF_HAL_GPIO_LED_GREEN, false);
+}
+
+static void cancel_acq(void)
+{
+	//pausar las conversiones de mma
+	appBoard_accIntEnable(false);
+
+	//Resetear el filtro
+	kalman_reset();
+
+	//borrar queue de la tarea de envío
+	reportPosition_reset();
+
+	//Prende led rojo
+	efHal_gpio_setPin(EF_HAL_GPIO_LED_RED, false);
+	efHal_gpio_setPin(EF_HAL_GPIO_LED_GREEN, true);
 }
 
 static void MEF(MEF_EVENTS event)
@@ -65,10 +94,6 @@ static void MEF(MEF_EVENTS event)
 		// Al menos 2 tareas requieren la placa inicializada
 		appBoard_init();
 
-		//El sistema empieza sin registrar nada
-		//Desactivo la fuente de interrupciones en el acelerómetro
-		appBoard_accIntEnable(false);
-
 		//Para obtener los eventos que hacen evolucionar la MEF
 		efHal_gpio_confInt(EF_HAL_GPIO_SW_1, EF_HAL_GPIO_INT_TYPE_FALLING_EDGE);
 		efHal_gpio_setCallBackInt(EF_HAL_GPIO_SW_1, gpio_callBackInt);
@@ -76,42 +101,22 @@ static void MEF(MEF_EVENTS event)
 		efHal_gpio_confInt(EF_HAL_GPIO_SW_3, EF_HAL_GPIO_INT_TYPE_FALLING_EDGE);
 		efHal_gpio_setCallBackInt(EF_HAL_GPIO_SW_3, gpio_callBackInt);
 
-		//Prende led rojo
-		efHal_gpio_setPin(EF_HAL_GPIO_LED_RED, false);
-		efHal_gpio_setPin(EF_HAL_GPIO_LED_GREEN, true);
+		cancel_acq();
 
-		state = MEF_CANCEL_ACQ;
+		state = MEF_NO_ACQ;
 		break;
 
-	case MEF_CANCEL_ACQ:
+	case MEF_NO_ACQ:
 		if (event == E_SW1) {
-			//Reiniciar las conversiones para comenzar el proceso
-			appBoard_accIntEnable(true);
-
-			//Prende led verde
-			efHal_gpio_setPin(EF_HAL_GPIO_LED_RED, true);
-			efHal_gpio_setPin(EF_HAL_GPIO_LED_GREEN, false);
-
-			state = MEF_START_ACQ;
+			start_acq();
+			state = MEF_ACQ;
 		}
 		break;
 
-	case MEF_START_ACQ:
+	case MEF_ACQ:
 		if (event == E_SW3) {
-			//pausar las conversiones de mma
-			appBoard_accIntEnable(false);
-
-			//Resetear el filtro
-			kalman_reset();
-
-			//borrar queue de la tarea de envío
-			reportPosition_reset();
-
-			//Prende led rojo
-			efHal_gpio_setPin(EF_HAL_GPIO_LED_RED, false);
-			efHal_gpio_setPin(EF_HAL_GPIO_LED_GREEN, true);
-
-			state = MEF_CANCEL_ACQ;
+			cancel_acq();
+			state = MEF_NO_ACQ;
 		}
 		break;
 
@@ -151,7 +156,7 @@ static MEF_EVENTS getEvent(void)
 
 extern void appMEF_init(void)
 {
-	xTaskCreate(MEFTask, "MEF", 100, NULL, 1, NULL);
+	xTaskCreate(MEFTask, "MEF", 100, NULL, 0, NULL);
 }
 
 /*==================[end of file]============================================*/
