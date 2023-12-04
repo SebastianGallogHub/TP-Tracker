@@ -60,7 +60,7 @@ extern void appBoard_init(void)
         							 //	adquisición en MMA8451_DR_12p5hz
         							 //Configura resoluciónen 14b
 
-    mma8451_setDataRate(MMA8451_DR_800hz); //Cambiar la velocidad a 800Hz
+    mma8451_setDataRate(MMA8451_DR_1p56hz); //Cambiar la velocidad a 100Hz
 
     ctrlReg4.INT_EN_DRDY = 1;
     ctrlReg4.INT_EN_FF_MT = 0;
@@ -85,6 +85,15 @@ extern void appBoard_init(void)
 
 extern void appBoard_accIntEnable(bool enabled)
 {
+//	if(enabled)
+//	{
+//		efHal_gpio_confInt(EF_HAL_INT1_ACCEL, EF_HAL_GPIO_INT_TYPE_FALLING_EDGE);
+//	}
+//	else
+//	{
+//		efHal_gpio_confInt(EF_HAL_INT1_ACCEL, EF_HAL_GPIO_INT_TYPE_DISABLE);
+//	}
+
 	mma8451_ctrlReg4_t ctrlReg4;
 
 	ctrlReg4.INT_EN_FF_MT = 0;
