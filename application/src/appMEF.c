@@ -20,7 +20,6 @@
 
 
 /*==================[macros and typedef]=====================================*/
-
 typedef enum
 {
 	MEF_APP_INIT = 0,
@@ -36,7 +35,6 @@ typedef enum
 } MEF_EVENTS;
 
 /*==================[internal functions declaration]=========================*/
-
 static void MEF(MEF_EVENTS event);
 static void start_acq(void);
 static void cancel_acq(void);
@@ -102,7 +100,6 @@ static void MEF(MEF_EVENTS event)
 		efHal_gpio_setCallBackInt(EF_HAL_GPIO_SW_3, gpio_callBackInt);
 
 		cancel_acq();
-
 		state = MEF_NO_ACQ;
 		break;
 

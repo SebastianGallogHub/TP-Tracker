@@ -24,9 +24,9 @@ extern "C" {
 
 typedef struct
 {
-	int16_t X;
-	int16_t Y;
-	int16_t Z;
+	float_t X;
+	float_t Y;
+	float_t Z;
 }position3D_t;
 
 /*==================[external data declaration]==============================*/

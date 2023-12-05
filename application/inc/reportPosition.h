@@ -25,7 +25,7 @@ extern "C" {
 
 extern void reportPosition_init(void);
 extern void reportPosition_reset(void);
-extern void reportPosition_addNewPosition(position3D_t position);
+extern void reportPosition_addNewPosition(void *position);
 
 /*==================[cplusplus]==============================================*/
 #ifdef __cplusplus

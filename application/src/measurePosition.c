@@ -32,7 +32,7 @@ static void measurePositionTask(void *pvParameters)
 {
 	mma8451_accIntCount_t accCAD;
 	acc3D_t accG;
-	position3D_t position;
+	position3D_t *position;
 
 	//Delay para esperar que los recursos se inicialicen en otra tarea
 	vTaskDelay(500 / portTICK_PERIOD_MS);
@@ -43,7 +43,7 @@ static void measurePositionTask(void *pvParameters)
 		{
 			accCAD = mma8451_getAccIntCount();
 			accG = mma8451ext_accConvertToG(accCAD, MMA8451_RESOLUTION_2G_RANGE_14b);
-			position = kalman_calcPosition(accG);
+			*position = kalman_calcPosition(accG);
 
 			// promediar / decimar / reducir freq a 10Hz y luego
 			reportPosition_addNewPosition(position);
