@@ -38,6 +38,11 @@ extern void vApplicationDaemonTaskStartupHook()
 	measurePosition_init();
 }
 
+extern void vApplicationMallocFailedHook()
+{
+
+}
+
 extern void vApplicationStackOverflowHook( TaskHandle_t xTask, char *pcTaskName )
 {
     while (1);
