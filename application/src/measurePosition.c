@@ -17,7 +17,6 @@
 #include "kalman.h"
 
 /*==================[macros and typedef]=====================================*/
-#define DATA_PERIOD_MS 20
 
 /*==================[internal functions declaration]=========================*/
 static void measurePositionTask(void *pvParameters);
@@ -31,8 +30,13 @@ static void measurePositionTask(void *pvParameters);
 static void measurePositionTask(void *pvParameters)
 {
 	mma8451_accIntCount_t accCAD;
-	acc3D_t accG;
-	position3D_t *position;
+	acc3D_t acc;
+	position3D_t position;
+	float_t periodo = 1/1.56; // 1.56Hz
+	position.X = 0;
+	position.Y = 0;
+	position.Z = 0;
+
 
 	//Delay para esperar que los recursos se inicialicen en otra tarea
 	vTaskDelay(500 / portTICK_PERIOD_MS);
@@ -42,13 +46,11 @@ static void measurePositionTask(void *pvParameters)
 		if (efHal_gpio_waitForInt(EF_HAL_INT1_ACCEL, 100 / portTICK_PERIOD_MS))
 		{
 			accCAD = mma8451_getAccIntCount();
-			accG = mma8451ext_accConvertToG(accCAD, MMA8451_RESOLUTION_2G_RANGE_14b);
-			*position = kalman_calcPosition(accG);
+			acc = mma8451ext_CADToAcc(accCAD, MMA8451_RESOLUTION_2G_RANGE_14b);
+			position = kalman_calcPosition(acc, periodo);
 
 			// promediar / decimar / reducir freq a 10Hz y luego
-			reportPosition_addNewPosition(position);
-
-			vTaskDelay(DATA_PERIOD_MS / portTICK_PERIOD_MS);
+			reportPosition_addNewPosition(&position);
 		}
 	}
 }

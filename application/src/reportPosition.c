@@ -29,24 +29,20 @@ QueueHandle_t xUartSendQueue = NULL;
 /*==================[internal functions definition]==========================*/
 extern void reportPositionTask(void *pvParameters)
 {
-	position3D_t position;
-	char header[] = "\n\rTP 3D Tracker\n\r\n\r*Presione \n\r\t->SW1 para iniciar\n\r\t->SW3 para cancelar\n\rX;Y;Z\n\r";
-	char dataFmt[] = "%3.2f;%3.2f;%3.2f;\n\r";
+	position3D_t pos;
+	char fmt[] = "%.2f;%.2f;%.2f;\n\r";
 	char strOut[50];
 	int32_t len;
 
 	//Delay para esperar que los recursos se inicialicen en otra tarea
 	vTaskDelay(500 / portTICK_PERIOD_MS);
-
-	//Encabezado y aviso de tarea inicializada
-	efHal_uart_send(efHal_dh_UART0, &header, sizeof(header), portMAX_DELAY);
 	for (;;)
 	{
 		//Leer Queue position3D_t
-		if(xQueueReceive(xUartSendQueue, &position, portMAX_DELAY) == pdPASS )
+		if(xQueueReceive(xUartSendQueue, &pos, portMAX_DELAY) == pdPASS )
 		{
 			//todo agregar info del sistema
-			len = sprintf(strOut, dataFmt, position.X, position.Y, position.Z);
+			len = sprintf(strOut, fmt, pos.X, pos.Y, pos.Z);
 
 			efHal_uart_send(efHal_dh_UART0, &strOut, len, portMAX_DELAY);
 		}
