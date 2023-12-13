@@ -30,7 +30,7 @@ QueueHandle_t xUartSendQueue = NULL;
 extern void reportPositionTask(void *pvParameters)
 {
 	position3D_t pos;
-	char fmt[] = "%.2f;%.2f;%.2f;\n\r";
+	char fmt[] = "%10.2f;\t%10.2f;\t%10.2f;\n\r";
 	char strOut[50];
 	int32_t len;
 
