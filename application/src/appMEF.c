@@ -39,7 +39,6 @@ static void MEF(MEF_EVENTS event);
 static void start_acq(void);
 static void cancel_acq(void);
 static void gpio_callBackInt(efHal_gpio_id_t id);
-static void setEvent(MEF_EVENTS event);
 static MEF_EVENTS getEvent(void);
 
 /*==================[internal data definition]===============================*/
@@ -126,19 +125,14 @@ static void gpio_callBackInt(efHal_gpio_id_t id)
     switch (id)
     {
         case EF_HAL_GPIO_SW_1:
-			setEvent(E_SW1);
+        	currentEvent = E_SW1;
             break;
 
         case EF_HAL_GPIO_SW_3:
-        	setEvent(E_SW3);
+        	currentEvent = E_SW3;
             break;
     }
 
-}
-
-static void setEvent(MEF_EVENTS event)
-{
-	currentEvent = event;
 }
 
 static MEF_EVENTS getEvent(void)
