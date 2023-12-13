@@ -40,7 +40,7 @@ extern void vApplicationDaemonTaskStartupHook()
 
 extern void vApplicationMallocFailedHook()
 {
-
+	while (1);
 }
 
 extern void vApplicationStackOverflowHook( TaskHandle_t xTask, char *pcTaskName )

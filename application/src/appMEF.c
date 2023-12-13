@@ -57,16 +57,21 @@ static void MEFTask(void *pvParameters)
 
 static void start_acq(void)
 {
-	//Reiniciar las conversiones para comenzar el proceso
-	appBoard_accIntEnable(true);
+	static uint8_t header[] = "\n\rTP 3D Tracker\n\r\n\r*Presione SW3 para cancelar\n\rX;\tY;\tZ;\n\r";
+	efHal_uart_send(efHal_dh_UART0, &header, sizeof(header), portMAX_DELAY);
 
 	//Prende led verde
 	efHal_gpio_setPin(EF_HAL_GPIO_LED_RED, true);
 	efHal_gpio_setPin(EF_HAL_GPIO_LED_GREEN, false);
+
+	//Reiniciar las conversiones para comenzar el proceso
+	appBoard_accIntEnable(true);
 }
 
 static void cancel_acq(void)
 {
+	static uint8_t footer[] = "\n\r********* FIN ********* \n\r Presione SW1 para iniciar\n\r";
+
 	//pausar las conversiones de mma
 	appBoard_accIntEnable(false);
 
@@ -79,6 +84,8 @@ static void cancel_acq(void)
 	//Prende led rojo
 	efHal_gpio_setPin(EF_HAL_GPIO_LED_RED, false);
 	efHal_gpio_setPin(EF_HAL_GPIO_LED_GREEN, true);
+
+	efHal_uart_send(efHal_dh_UART0, &footer, sizeof(footer), portMAX_DELAY);
 }
 
 static void MEF(MEF_EVENTS event)
