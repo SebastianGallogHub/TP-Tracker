@@ -20,19 +20,6 @@
 
 
 /*==================[macros and typedef]=====================================*/
-typedef enum
-{
-	MEF_APP_INIT = 0,
-	MEF_NO_ACQ,
-	MEF_ACQ,
-} MEF_STATE;
-
-typedef enum
-{
-	E_NONE = 0,
-	E_SW1,
-	E_SW3,
-} MEF_EVENTS;
 
 /*==================[internal functions declaration]=========================*/
 static void MEF(MEF_EVENTS event);
@@ -42,7 +29,8 @@ static void gpio_callBackInt(efHal_gpio_id_t id);
 static MEF_EVENTS getEvent(void);
 
 /*==================[internal data definition]===============================*/
-MEF_EVENTS currentEvent;
+MEF_STATE state = MEF_APP_INIT;
+MEF_EVENTS currentEvent = E_NONE;
 
 /*==================[external data definition]===============================*/
 /*==================[internal functions definition]==========================*/
@@ -55,6 +43,19 @@ static void MEFTask(void *pvParameters)
 	}
 }
 
+static void calib(void)
+{
+	static uint8_t header[] = "\n\r****** CALIBRANDO ... ******\n\r";
+	efHal_uart_send(efHal_dh_UART0, &header, sizeof(header), portMAX_DELAY);
+
+	//Reiniciar las conversiones para comenzar el proceso
+	appBoard_accIntEnable(true);
+
+	//Prende ambos
+	efHal_gpio_setPin(EF_HAL_GPIO_LED_RED, false);
+	efHal_gpio_setPin(EF_HAL_GPIO_LED_GREEN, false);
+}
+
 static void start_acq(void)
 {
 	static uint8_t header[] = "\n\rTP 3D Tracker\n\r\n\r*Presione SW3 para cancelar\n\rX;\tY;\tZ;\n\r";
@@ -63,9 +64,6 @@ static void start_acq(void)
 	//Prende led verde
 	efHal_gpio_setPin(EF_HAL_GPIO_LED_RED, true);
 	efHal_gpio_setPin(EF_HAL_GPIO_LED_GREEN, false);
-
-	//Reiniciar las conversiones para comenzar el proceso
-	appBoard_accIntEnable(true);
 }
 
 static void cancel_acq(void)
@@ -76,7 +74,7 @@ static void cancel_acq(void)
 	appBoard_accIntEnable(false);
 
 	//Resetear el filtro
-	kalman_reset();
+//	kalman_reset();
 
 	//borrar queue de la tarea de envío
 	reportPosition_reset();
@@ -88,10 +86,19 @@ static void cancel_acq(void)
 	efHal_uart_send(efHal_dh_UART0, &footer, sizeof(footer), portMAX_DELAY);
 }
 
+
+extern MEF_STATE appMEF_getState(void)
+{
+	return state;
+}
+
+extern void appMEF_setEvent(MEF_EVENTS event)
+{
+	currentEvent = event;
+}
+
 static void MEF(MEF_EVENTS event)
 {
-	static MEF_STATE state = MEF_APP_INIT;
-
 	switch(state)
 	{
 	case MEF_APP_INIT:
@@ -111,6 +118,13 @@ static void MEF(MEF_EVENTS event)
 
 	case MEF_NO_ACQ:
 		if (event == E_SW1) {
+			calib();
+			state = MEF_CALIB;
+		}
+		break;
+
+	case MEF_CALIB:
+		if (event == E_END_CALIB) {
 			start_acq();
 			state = MEF_ACQ;
 		}
