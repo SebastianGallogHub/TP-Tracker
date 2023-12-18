@@ -10,7 +10,7 @@
 
 
 /*==================[inclusions]=============================================*/
-#include "kalman.h"
+#include <math.h>
 
 /*==================[cplusplus]==============================================*/
 #ifdef __cplusplus
@@ -18,6 +18,12 @@ extern "C" {
 #endif
 
 /*==================[macros and typedef]=====================================*/
+typedef struct
+{
+	float_t X;
+	float_t Y;
+	float_t Z;
+}position3D_t;
 
 /*==================[external data declaration]==============================*/
 
@@ -25,7 +31,7 @@ extern "C" {
 
 extern void reportPosition_init(void);
 extern void reportPosition_reset(void);
-extern void reportPosition_addNewPosition(void *position);
+extern void reportPosition_addNewPosition(position3D_t *position);
 
 /*==================[cplusplus]==============================================*/
 #ifdef __cplusplus

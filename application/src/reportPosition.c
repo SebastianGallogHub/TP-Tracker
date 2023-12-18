@@ -11,8 +11,8 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
-#include "kalman.h"
 #include <stdio.h>
+#include "bsp_frdmkl46z.h"
 
 /*==================[macros and typedef]=====================================*/
 #define UART_SND_QUEUE_LENGTH		50
@@ -58,7 +58,7 @@ extern void reportPosition_init(void)
 	xTaskCreate(reportPositionTask, "Report position", 300, NULL, 0, NULL);
 }
 
-extern void reportPosition_addNewPosition(void *position)
+extern void reportPosition_addNewPosition(position3D_t *position)
 {
 	xQueueSend(xUartSendQueue, position, 500 / portTICK_PERIOD_MS );
 }

@@ -13,7 +13,6 @@
 #include "task.h"
 #include "stdbool.h"
 
-#include "kalman.h"
 #include "measurePosition.h"
 #include "reportPosition.h"
 #include "appBoard.h"
@@ -73,9 +72,6 @@ static void cancel_acq(void)
 	//pausar las conversiones de mma
 	appBoard_accIntEnable(false);
 
-	//Resetear el filtro
-//	kalman_reset();
-
 	//borrar queue de la tarea de envío
 	reportPosition_reset();
 
@@ -127,6 +123,10 @@ static void MEF(MEF_EVENTS event)
 		if (event == E_END_CALIB) {
 			start_acq();
 			state = MEF_ACQ;
+		}
+		if (event == E_SW3) {
+			cancel_acq();
+			state = MEF_NO_ACQ;
 		}
 		break;
 
