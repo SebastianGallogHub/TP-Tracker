@@ -23,7 +23,7 @@ typedef enum
 	CALC_POS,
 } STATE;
 
-#define DATA_RATE  		400 // 400Hz
+#define DATA_RATE  		200 //Hz
 #define SAMPLE_TIME		1/DATA_RATE
 #define MAX_VALUES  	3
 #define MAX_AXIS		3
@@ -122,6 +122,7 @@ static void reset()
 static uint8_t filter_acc()
 {
 	static uint8_t i;
+
 	contAcc++;
 	if (contAcc >= SAMPLES) {
 		contAcc = 0;
@@ -213,7 +214,7 @@ static void calculate_pos()
 static void measurePositionTask(void *pvParameters)
 {
 	static uint8_t i, c;
-	static uint8_t accShutDown = 0;
+	static uint8_t calibrated = 0;
 	mma8451_accIntCount_t accCAD;
 
 	//Delay para esperar que los recursos se inicialicen en otra tarea
@@ -226,42 +227,76 @@ static void measurePositionTask(void *pvParameters)
 			A[0][0] += accCAD.accX;
 			A[0][1] += accCAD.accY;
 			A[0][2] += 4096 - accCAD.accZ;
-		}
-		else{
-			accShutDown = 1;
-		}
 
-		if (filter_acc()) {
-			switch(st)
-			{
-			case CALI_ACC:
-				c++;
-				for (i = 0; i < MAX_AXIS; ++i) {
-					OF[i] += Af[0][i];
-				}
+			//Filtro Butterworth
+			if (filter_acc()) {
 
-				if (c>=1024)
-				{
-					c =0;
+				//Calibración
+				if (!calibrated) {
+					c++;
 					for (i = 0; i < MAX_AXIS; ++i) {
-						OF[i] = OF[i]/1024;
+						OF[i] += Af[0][i];
 					}
-					st = CALC_POS;
+
+					if (c>=64)
+					{
+						c =0;
+						calibrated = 1;
+						for (i = 0; i < MAX_AXIS; ++i) {
+							OF[i] = OF[i]/64;
+						}
+					}
 				}
+				else{
+//					position.X = Af[0][0];
+//					position.Y = Af[0][1];
+//					position.Z = Af[0][2];
 
-				break;
+					position.X = Af[0][0]-OF[0];
+					position.Y = Af[0][1]-OF[1];
+					position.Z = Af[0][2]-OF[2];
 
-			case CALC_POS:
-				calculate_pos();
-
-				if(accShutDown)
-				{
-					reset();
-					st = CALI_ACC;
+					//Enviar valor de posición
 					reportPosition_addNewPosition(&position);
 				}
-				break;
+
 			}
+		}
+		else{
+			calibrated = 0;
+		}
+
+//		if (filter_acc()) {
+//			switch(st)
+//			{
+//			case CALI_ACC:
+//				c++;
+//				for (i = 0; i < MAX_AXIS; ++i) {
+//					OF[i] += Af[0][i];
+//				}
+//
+//				if (c>=1024)
+//				{
+//					c =0;
+//					for (i = 0; i < MAX_AXIS; ++i) {
+//						OF[i] = OF[i]/1024;
+//					}
+//					st = CALC_POS;
+//				}
+//
+//				break;
+//
+//			case CALC_POS:
+//				calculate_pos();
+//
+//				if(accShutDown)
+//				{
+//					reset();
+//					st = CALI_ACC;
+//					reportPosition_addNewPosition(&position);
+//				}
+//				break;
+//			}
 		}
 
 //		if(cali)
@@ -316,7 +351,7 @@ static void measurePositionTask(void *pvParameters)
 //				reportPosition_addNewPosition(&position);
 //			}
 //		}
-	}
+//	}
 }
 
 /*==================[external functions definition]==========================*/
