@@ -13,9 +13,9 @@
 
 #include "efHal_gpio.h"
 #include "mma8451.h"
-#include "mma8451ext.h"
 #include "appMEF.h"
 #include "bsp_frdmkl46z.h"
+#include "appBoard.h"
 
 /*==================[macros and typedef]=====================================*/
 #define DATA_RATE  		400 //Hz

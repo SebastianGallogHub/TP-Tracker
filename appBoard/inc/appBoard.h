@@ -51,6 +51,15 @@ extern "C" {
 #include "stdbool.h"
 
 /*==================[external data declaration]==============================*/
+#define MMA8451_RESOLUTION_2G_RANGE_14b	 0.25/1000 //mG
+#define MMA8451_RESOLUTION_2G_RANGE_08b	 15.6/1000
+
+#define MMA8451_RESOLUTION_4G_RANGE_14b	 0.5/1000
+#define MMA8451_RESOLUTION_4G_RANGE_08b	 31.25/1000
+
+#define MMA8451_RESOLUTION_8G_RANGE_14b	 1.0/1000
+#define MMA8451_RESOLUTION_8G_RANGE_08b	 62.5/1000
+
 
 /*==================[external functions declaration]=========================*/
 extern void appBoard_init(void);
