@@ -10,7 +10,7 @@
 #include "reportPosition.h"
 #include "FreeRTOS.h"
 #include "task.h"
-
+#include "queue.h"
 #include "efHal_gpio.h"
 #include "mma8451.h"
 #include "appMEF.h"
@@ -27,26 +27,33 @@
 #define LOW_LEVEL_NOISE 5
 #define END_OF_MOVEMENT 5
 
+#define ACC_QUEUE_LENGTH		SAMPLES
+#define ACC_QUEUE_ITEM_SIZE 	sizeof(mma8451_accIntCount_t)
+
 /*==================[internal functions declaration]=========================*/
 static void measurePositionTask(void *pvParameters);
 
 /*==================[internal data definition]===============================*/
 
+QueueHandle_t xAccQueue = NULL;
+
 //salida
 static position3D_t position;
 //contaddores
-static uint16_t contAcc = 0;//, cCali = 0;
-////banderas
+static uint16_t contAcc = 0;
+//banderas
 static uint8_t fReset = 1;
 
-static int8_t END_OF_MOVEMENT_CT[MAX_AXIS];
 static int32_t OF[MAX_AXIS];
+			   Ap[MAX_AXIS];
 
 static int16_t A[MAX_VALUES][MAX_AXIS],
 			   Af[MAX_VALUES][MAX_AXIS];
 
 static float_t V[MAX_VALUES][MAX_AXIS],
  	 	 	   P[MAX_VALUES][MAX_AXIS];
+
+static int8_t END_OF_MOVEMENT_CT[MAX_AXIS];
 
 //butterworth
 static float_t sampling_rate;
@@ -100,10 +107,10 @@ static void reset()
 	position.X = 0;
 	position.Y = 0;
 	position.Z = 0;
-	for (i = 0; i < MAX_VALUES; i++) {
-		for (j = 0; j < MAX_AXIS; j++) {
-			OF[j] = 0;
-
+	for (j = 0; j < MAX_AXIS; j++) {
+		OF[j] = 0;
+		Ap[j] = 0;
+		for (i = 0; i < MAX_VALUES; i++) {
 			A[i][j] = 0;
 			Af[i][j] = 0;
 
@@ -118,21 +125,25 @@ static uint8_t filter_acc()
 	static uint8_t i;
 
 	contAcc++;
+
+	for (i = 0; i < MAX_AXIS; i++) {
+		//Filtro de aceleración
+		Af[0][i] = butterworth_2_lpf(A[0][i], A[1][i], A[2][i], Af[1][i], Af[2][i]);
+
+		//Acumulación
+		Ap[i] += Af[0][i];
+
+		//Avanzar un paso del filtro
+		A[2][i] = A[1][i];	Af[2][i] = Af[1][i];
+		A[1][i] = A[0][i];	Af[1][i] = Af[0][i];
+	}
+
 	if (contAcc >= SAMPLES) {
+		//Promediado
 		contAcc = 0;
-
 		for (i = 0; i < MAX_AXIS; i++) {
-			//Promediado
-			A[0][i] = A[0][i] / SAMPLES;
-
-			//Filtro de aceleración
-			Af[0][i] = butterworth_2_lpf(A[0][i], A[1][i], A[2][i], Af[1][i], Af[2][i]);
-
-			//Avanzar un paso del filtro
-			A[2][i] = A[1][i];	Af[2][i] = Af[1][i];
-			A[1][i] = A[0][i];	Af[1][i] = Af[0][i];
+			Ap[i] = Ap[i] / SAMPLES;
 		}
-
 		return 1;
 	}
 
@@ -141,17 +152,17 @@ static uint8_t filter_acc()
 
 static uint8_t calibrarAcc()
 {
-	static uint8_t i, c=0;
+	static uint8_t i, c = 0;
 
 	c++;
 	for (i = 0; i < MAX_AXIS; ++i) {
-		OF[i] += Af[0][i];
+		OF[i] += Ap[i];
 	}
 
-	if (c>= SAMPLES)
+	if (c >= SAMPLES)
 	{
-		c =0;
-		for (i = 0; i < MAX_AXIS; ++i) {
+		c = 0;
+		for (i = 0; i < MAX_AXIS; i++) {
 			OF[i] = OF[i]/SAMPLES;
 		}
 		return 1;
@@ -166,7 +177,7 @@ static void calcPosition()
 
 	for (i = 0; i < MAX_AXIS; ++i) {
 
-		a = Af[0][i]-OF[i];
+		a = Ap[i]-OF[i];
 
 		//Filtrado ruido HW
 		if ((a <= LOW_LEVEL_NOISE) && (a >= -LOW_LEVEL_NOISE)) {
@@ -210,12 +221,12 @@ static void measurePositionTask(void *pvParameters)
 
 	for (;;)
 	{
-
 		if (efHal_gpio_waitForInt(EF_HAL_INT1_ACCEL, 400 / portTICK_PERIOD_MS)) {
+//		if(xQueueReceive(xAccQueue, &accCAD, 400 / portTICK_PERIOD_MS) == pdPASS ){
 			accCAD = mma8451_getAccIntCount();
-			A[0][0] += accCAD.accX;
-			A[0][1] += accCAD.accY;
-			A[0][2] += 4096 - accCAD.accZ;
+			A[0][0] = accCAD.accX;
+			A[0][1] = accCAD.accY;
+			A[0][2] = 4096 - accCAD.accZ;
 		}
 		else {
 			appMEF_setEvent(E_SW3);
@@ -245,16 +256,26 @@ static void measurePositionTask(void *pvParameters)
 	}
 }
 
+static mma8451_accIntCount_t accCAD;
+
+static void acc_int1_callBackInt(efHal_gpio_id_t id)
+{
+	accCAD = mma8451_getAccIntCount();
+	xQueueSendFromISR(xAccQueue, &accCAD, NULL);
+}
+
 /*==================[external functions definition]==========================*/
 extern void measurePosition_init(void)
 {
-	butterworth_init((float_t)(DATA_RATE / SAMPLES) / 4, (float_t)SAMPLE_TIME * SAMPLES);
+//	xAccQueue = xQueueCreate(ACC_QUEUE_LENGTH, ACC_QUEUE_ITEM_SIZE);
+
+//	efHal_gpio_setCallBackInt(EF_HAL_INT1_ACCEL, acc_int1_callBackInt);
+
+	butterworth_init((float_t)DATA_RATE / 4, (float_t)SAMPLE_TIME);
 
 	xTaskCreate(measurePositionTask, "Measure position", 100, NULL, 0, NULL);
 }
 
 /*==================[end of file]============================================*/
-
-
 
 
