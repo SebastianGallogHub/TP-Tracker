@@ -18,11 +18,12 @@
 #include "appBoard.h"
 
 /*==================[macros and typedef]=====================================*/
-#define DATA_RATE  		400 //Hz
+#define DATA_RATE  		800 //Hz
 #define SAMPLE_TIME		1/DATA_RATE
 #define MAX_VALUES  	3
 #define MAX_AXIS		3
 #define SAMPLES 		128
+#define SAMPLES_P 		128
 #define T				SAMPLE_TIME * SAMPLES
 #define LOW_LEVEL_NOISE 5
 #define END_OF_MOVEMENT 5
@@ -44,7 +45,7 @@ static uint16_t contAcc = 0;
 //banderas
 static uint8_t fReset = 1;
 
-static int32_t OF[MAX_AXIS];
+static int32_t OF[MAX_AXIS],
 			   Ap[MAX_AXIS];
 
 static int16_t A[MAX_VALUES][MAX_AXIS],
@@ -104,7 +105,7 @@ static void reset()
 {
 	static uint8_t i, j;
 
-	position.X = 0;
+	position.X = 1;
 	position.Y = 0;
 	position.Z = 0;
 	for (j = 0; j < MAX_AXIS; j++) {
@@ -159,11 +160,11 @@ static uint8_t calibrarAcc()
 		OF[i] += Ap[i];
 	}
 
-	if (c >= SAMPLES)
+	if (c >= SAMPLES_P)
 	{
 		c = 0;
 		for (i = 0; i < MAX_AXIS; i++) {
-			OF[i] = OF[i]/SAMPLES;
+			OF[i] = OF[i]/SAMPLES_P;
 		}
 		return 1;
 	}
@@ -221,15 +222,15 @@ static void measurePositionTask(void *pvParameters)
 
 	for (;;)
 	{
-		if (efHal_gpio_waitForInt(EF_HAL_INT1_ACCEL, 400 / portTICK_PERIOD_MS)) {
-//		if(xQueueReceive(xAccQueue, &accCAD, 400 / portTICK_PERIOD_MS) == pdPASS ){
+		if (efHal_gpio_waitForInt(EF_HAL_INT1_ACCEL, 200 / portTICK_PERIOD_MS)) {
 			accCAD = mma8451_getAccIntCount();
 			A[0][0] = accCAD.accX;
 			A[0][1] = accCAD.accY;
 			A[0][2] = 4096 - accCAD.accZ;
 		}
 		else {
-			appMEF_setEvent(E_SW3);
+			if(fReset == 1)
+				appMEF_setEvent(E_SW3);
 		}
 
 
@@ -256,24 +257,12 @@ static void measurePositionTask(void *pvParameters)
 	}
 }
 
-static mma8451_accIntCount_t accCAD;
-
-static void acc_int1_callBackInt(efHal_gpio_id_t id)
-{
-	accCAD = mma8451_getAccIntCount();
-	xQueueSendFromISR(xAccQueue, &accCAD, NULL);
-}
-
 /*==================[external functions definition]==========================*/
 extern void measurePosition_init(void)
 {
-//	xAccQueue = xQueueCreate(ACC_QUEUE_LENGTH, ACC_QUEUE_ITEM_SIZE);
-
-//	efHal_gpio_setCallBackInt(EF_HAL_INT1_ACCEL, acc_int1_callBackInt);
-
 	butterworth_init((float_t)DATA_RATE / 4, (float_t)SAMPLE_TIME);
 
-	xTaskCreate(measurePositionTask, "Measure position", 100, NULL, 0, NULL);
+	xTaskCreate(measurePositionTask, "Measure position", 100, NULL, 1, NULL);
 }
 
 /*==================[end of file]============================================*/

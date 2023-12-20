@@ -60,7 +60,7 @@ extern void appBoard_init(void)
         							 //	adquisición en MMA8451_DR_12p5hz
         							 //Configura resoluciónen 14b
 
-    mma8451_setDataRate(MMA8451_DR_400hz);
+    mma8451_setDataRate(MMA8451_DR_800hz);
 
     ctrlReg4.INT_EN_DRDY = 1;
     ctrlReg4.INT_EN_FF_MT = 0;
