@@ -198,19 +198,23 @@ static void calcPosition()
 		P[0][i] = P[1][i];
 
 		//Verificación de final de movimiento para minimizar el error de velocidad
-		if (A[0][i] == 0) {
+		if (a == 0) {
 			END_OF_MOVEMENT_CT[i]++;
 		}
 
 		if (END_OF_MOVEMENT_CT[i] >= END_OF_MOVEMENT) {
 			V[0][i] = 0;
 			V[1][i] = 0;
+			END_OF_MOVEMENT_CT[i] = 0;
 		}
 	}
 
 	position.X = P[1][0];
 	position.Y = P[1][1];
 	position.Z = P[1][2];
+//	position.X = Ap[0]-OF[0];
+//	position.Y = Ap[1]-OF[1];
+//	position.Z = Ap[2]-OF[2];
 
 	//Enviar valor de posición
 	reportPosition_addNewPosition(&position);
